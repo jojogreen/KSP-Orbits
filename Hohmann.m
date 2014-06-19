@@ -7,7 +7,7 @@ Planet4 = importdata('consolidated_4.mat');
 % Planet6 = importdata(R6);
 % Planet7 = importdata(R7);
 mu = 1.17*10^18;
-R2guess = [1.969*10^10:20000:2.1762*10^10];
+R2guess = [1.969*10^10:15000:2.1762*10^10];
 T = Planet4(:,1);
 R = Planet4(:,2);
 ang = Planet4(:,3);
@@ -21,19 +21,26 @@ deltV = [];
 Tinit = [];
 deltT = pi*sqrt(((R1+R2guess).^3)./(8*mu));
 PHASE = [];
-diffang = mod((ang-angShip), 2.*pi);
-for Ti = 3*10^6:20000:5*10^6
-        Tf = Ti+deltT;
-        Ti
-        for i =1:10360
+X = [];
+Time = [];
+diffang = (ang-angShip);
+TI = randi([2.4*10^7 3.79*10^7],1000,1);
+%for Ti = 0:10000:1*10^7
+ for w = 1:1*10^3
+     Ti = TI(w,1);
+     Tf = Ti+deltT;
+
+        for i =1:13813
             tf = Tf(1,i);
-            [row col] = find(tf+55>T & tf-55<T);
-            if abs(T(row)-tf)<=55
-                
+            [row col] = find(tf+50>T & tf-50<T);
+            if abs(T(row)-tf)<=50                
                 R2real = Lookup(row,2);
                 phase = pi-sqrt(mu/R2real)*(tf-Ti)/R2real;
                 PHASE = [PHASE; phase];
-                if abs(diffang)>phase+5*pi/180 & abs(diffang)<phase-5*pi/180
+                Z = abs(diffang(row,1));
+                X = [X; phase Z];
+                if abs(diffang(row,1))>abs(phase-10*pi/180) && abs(diffang(row,1))<abs(phase+10*pi/180)
+                    Time = [Time;tf-Ti];
                     RSSS=[RSSS; R2real];
                     Tinit = [Tinit;Ti];
                     dV = sqrt(mu/R1)*(sqrt((2*R2real)/(R1+R2real))-1);
@@ -42,10 +49,10 @@ for Ti = 3*10^6:20000:5*10^6
             end
         end
 end
-coagulated = [Tinit RSSS deltV];
-scatter3(Tinit, RSSS, deltV, '.');
+coagulated = [Tinit Time deltV];
+scatter3(Tinit, Time, deltV, '.');
 xlabel('Time of burn');
-ylabel('Radius of arrival');
+ylabel('DeltaT');
 zlabel('deltaV');
         
         
